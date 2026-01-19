@@ -32,3 +32,11 @@ public enum Gender
     Female
 }
 
+public enum UserRoles
+{
+    SuperAdmin,
+    Teacher,
+    Student,
+    Verificator
+}
+

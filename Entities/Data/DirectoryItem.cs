@@ -1,16 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace REPETITEURLINK.Entities.Data;
 
 public class DirectoryItem:EntityBase
 {
-    public DirectoryKinds kind { get; set; }
+    public DirectoryKinds Kind { get; set; }
     public string Value { get; set; }
+    [MaxLength(100)]
     public string DisplayName { get; set; }
-    public string? Symbole { get; set; }
-    public string? CountryId { get; set; }
-    public string? CityId { get; set; }
-
+    public string? Symbol { get; set; }
+    public Guid? CountryId { get; set; }
+    public Guid? CityId { get; set; }
+    public bool IsNative { get; set; } = true;
     [ForeignKey(nameof(CountryId))]
     public DirectoryItem? Country { get; set; }
     [ForeignKey(nameof(CityId))]
@@ -42,41 +44,59 @@ public enum DirectoryKinds
     SchoolClassLevel
 }
 
-class CountryDto
+public class DirectoryItemDto : EntityBase
 {
-    public DirectoryKinds kind { get; set; }
+    public DirectoryKinds Kind { get; set; }
     public string Value { get; set; }
+
     public string DisplayName { get; set; }
-    public string? Symbole { get; set; }
+    public string? Symbol { get; set; }
+    public Guid? CountryId { get; set; }
+    public Guid? CityId { get; set; }
+    public bool IsNative { get; set; } = true;
+    public DirectoryItemDto? Country { get; set; }
+    public DirectoryItemDto? City { get; set; }
 }
-public class CurrencyDto
-    {
-    public DirectoryKinds kind { get; set; }
-    public string Value { get; set; }
-    public string DisplayName { get; set; }
-    public string Symbole { get; set; }
-}
-public class CityDto
+public class CountryDto:EntityBase
 {
-    public DirectoryKinds kind { get; set; }
+    public DirectoryKinds Kind { get; set; }
     public string Value { get; set; }
     public string DisplayName { get; set; }
-    public string? CountryId { get; set; }
-    public DirectoryItem Country { get; set; }
+    public string? Symbol { get; set; }
+    public bool IsNative { get; set; } = true;
 }
-public class NeighborhoodDto
+public class CurrencyDto : EntityBase
 {
-    public DirectoryKinds kind { get; set; }
+    public DirectoryKinds Kind { get; set; }
     public string Value { get; set; }
     public string DisplayName { get; set; }
-    public DirectoryItem City { get; set; }
+    public string Symbol { get; set; }
+    public bool IsNative { get; set; } = true;
+}
+public class CityDto : EntityBase
+{
+    public DirectoryKinds Kind { get; set; }
+    public string Value { get; set; }
+    public string DisplayName { get; set; }
+    public Guid? CountryId { get; set; }
+    public DirectoryItemDto Country { get; set; }
+    public bool IsNative { get; set; } = true;
+}
+public class NeighborhoodDto : EntityBase
+{
+    public DirectoryKinds Kind { get; set; }
+    public string Value { get; set; }
+    public string DisplayName { get; set; }
+    public CityDto City { get; set; }
+    public bool IsNative { get; set; } = true;
 
 }
 
-public class SchoolClassLevelDto
+public class SchoolClassLevelDto : EntityBase
 {
-    public DirectoryKinds kind { get; set; }
+    public DirectoryKinds Kind { get; set; }
     public string Value { get; set; }
     public string DisplayName { get; set; }
+    public bool IsNative { get; set; } = true;
 }
 
