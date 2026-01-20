@@ -12,7 +12,7 @@ namespace REPETITEURLINK.Entities.Data;
     public string ?LastName { get; set; }
     public string FullName => $"{FirstName} {LastName}".Trim();
     public string Email { get; set; }
-    public Gender Sexe { get; set; }
+    public Gender? Sexe { get; set; }
     public string Password { get; set; }
     [MaxLength(12)]
     public string PhoneNumber { get; set; }

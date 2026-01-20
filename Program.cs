@@ -68,6 +68,7 @@ builder.Services.AddSingleton<CoreQueueService>();
 builder.Services.AddScoped<IRepository,Repository>();
 builder.Services.AddScoped<IDirectoryItemService, DirectoryItemService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 var app = builder.Build();

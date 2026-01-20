@@ -1,17 +1,22 @@
-﻿using Microsoft.AspNetCore.Components;
-
+﻿using Google.Apis.Auth;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using REPETITEURLINK;
 using REPETITEURLINK.Entities;
 using REPETITEURLINK.Entities.Data;
 using REPETITEURLINK.Entities.Extensions;
+using REPETITEURLINK.Entities.Models;
 using REPETITEURLINK.Entities.Repositories;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using REPETITEURLINK;
 
 namespace REPETITEURLINK.Services.Security;
 
@@ -23,14 +28,17 @@ public class AuthenticationService : BaseRepository, IAuthenticationService
 {
     private readonly IJwtTokenService _jwtTokenService;
     private readonly JwtSettings _jwtSettings;
+    private readonly Google _google;
 
     public AuthenticationService(
         IRepository repository,
         IJwtTokenService jwtTokenService,
-        IOptions<JwtSettings> jwtSettings) : base(repository)
+        IOptions<JwtSettings> jwtSettings,
+        IOptions<Google> google) : base(repository)
     {
         _jwtTokenService = jwtTokenService;
         _jwtSettings = jwtSettings.Value;
+        _google = google.Value;
     }
 
     /// <inheritdoc />
@@ -137,6 +145,59 @@ public class AuthenticationService : BaseRepository, IAuthenticationService
 
         return ApiResponse<LoginResponse?>.Success(dto);
     }
+    // Alternative: API endpoint pour mobile/applications natives
+    [HttpPost("google")]
+    public async Task<ApiResponse<UserDto?>> GoogleLoginMobile([FromBody] GoogleAuthRequest request)
+    {
+        // Valider le token Google côté serveur
+        var payload = await ValidateGoogleToken(request.IdToken);
+
+        if (payload == null)
+        {
+            return ApiResponse<UserDto?>.Failure("Invalid Google token");
+        }
+
+        var user = await _repository.GetAll<User>()
+            .FirstOrDefaultAsync(u => u.GoogleId == Guid.Parse(payload.Subject) || u.Email == payload.Email);
+
+        if (user == null)
+        {
+            user = new User
+            {
+                Email = payload.Email,
+                GoogleId = Guid.Parse(payload.Subject),
+                FirstName = payload.GivenName,
+                LastName = payload.FamilyName,
+                //ProfilePicture = payload.Picture,
+                CreatedAt = DateTime.UtcNow,
+                LastLoginAt = DateTime.UtcNow
+            };
+
+            await _repository.InsertAsync(user);
+        }
+        var dto = await _repository.GetAll<User>()
+            //.IncludeRelatives()
+            .Where(x => x.Id == user.Id).Select(x => x.ToDto()).FirstOrDefaultAsync();
+
+        return ApiResponse<UserDto>.Success(dto);
+    }
+
+    private async Task<GoogleJsonWebSignature.Payload> ValidateGoogleToken(string idToken)
+    {
+        try
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new[] { _google.ClientId }
+            };
+
+            return await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     /// <inheritdoc />
     public async Task<ApiResponse<bool>> ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken)
@@ -216,6 +277,19 @@ public class AuthenticationService : BaseRepository, IAuthenticationService
         {
             throw new ArgumentException("Invalid role specified");
         }
+        UserSubjectType parentSubjectType = UserSubjectType.None;
+        if (role == UserRoles.Student)
+        {
+            parentSubjectType = UserSubjectType.Student;
+        }
+        if (role == UserRoles.Parent)
+        {
+            parentSubjectType = UserSubjectType.Parent;
+        }
+        if (role == UserRoles.Teacher)
+        {
+            parentSubjectType = UserSubjectType.Encadreur;
+        }
 
         // Create new user
         var user = new User
@@ -224,6 +298,8 @@ public class AuthenticationService : BaseRepository, IAuthenticationService
             Email = request.Email.ToLower(),
             FirstName = request.FirstName,
             LastName = request.LastName,
+            ParentSubjectType=parentSubjectType,
+            ParentSubjectId=request.ParentSubjectId,
             Role = role,
             CreatedAt = DateTime.UtcNow,
         };

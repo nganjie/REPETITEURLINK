@@ -7,6 +7,12 @@ public class AppConfiguration
     public JwtSettings JwtSettings { get; set; }
     public SwaggerSetting Swagger { get; set; }
     public DefaultSettings DefaultSettings { get; set; }
+   public Google Google;
+}
+public class Google
+{
+    public string ClientId { get; set; }
+  public string ClientSecret { get; set; }
 }
 public class Database
 {

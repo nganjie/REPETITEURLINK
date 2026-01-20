@@ -35,6 +35,7 @@ public enum Gender
 public enum UserRoles
 {
     SuperAdmin,
+    Parent,
     Teacher,
     Student,
     Verificator

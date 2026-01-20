@@ -146,14 +146,14 @@ public record RegisterUserRequest
     /// <summary>
     /// First name
     /// </summary>
-    [Required(ErrorMessage = "First name is required")]
+    //[Required(ErrorMessage = "First name is required")]
     [MaxLength(100)]
     public string FirstName { get; init; } = string.Empty;
 
     /// <summary>
     /// Last name
     /// </summary>
-    [Required(ErrorMessage = "Last name is required")]
+    //[Required(ErrorMessage = "Last name is required")]
     [MaxLength(100)]
     public string LastName { get; init; } = string.Empty;
 
@@ -167,9 +167,11 @@ public record RegisterUserRequest
     /// <summary>
     /// Organization ID (optional, required for non-SuperAdmin roles)
     /// </summary>
-    public Guid? OrganizationId { get; init; }
+    [Required(ErrorMessage = "City  is required")]
+    public Guid? CityId { get; init; }
     [Required(ErrorMessage = "Phone number is required")]
     [Phone(ErrorMessage = "Invalid phone number format")]
     public string PhoneNumber { get; init; } = string.Empty;
+    public Guid? ParentSubjectId { get; init; }
 }
 
